@@ -35,6 +35,7 @@ package ru.pladform.plugin
 		public function BasePladformJWPlugin() 
 		{
 			Security.allowDomain("*");
+			logRelease("Pladform JW Plugin:",CONFIG::timeStamp)
 		}
 		
 		// STATIC METHODS
@@ -51,7 +52,6 @@ package ru.pladform.plugin
 			{
 				if (player.state != PlayerState.PLAYING) 
 				{
-					log("!!!resumeVideo!!!")
 					player.play();
 				}
 			}
@@ -110,13 +110,17 @@ package ru.pladform.plugin
 		{
 			CONFIG::debug
 			{
-				var str:String = "[flash] "+arg.join(" ");
-				try
-				{
-					ExternalInterface.call("console.log", str)
-				}
-				catch(err:Error){}
+				logRelease.apply(null, arg);
 			}
+		}
+		protected function logRelease(...arg):void
+		{
+			var str:String = "[flash] "+arg.join(" ");
+			try
+			{
+				ExternalInterface.call("console.log", str)
+			}
+			catch(err:Error){}
 		}
 		/**
 		 * воспроизводится ли потоковое вещание

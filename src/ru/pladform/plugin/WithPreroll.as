@@ -57,7 +57,6 @@ package ru.pladform.plugin
 		{
 			super.adComplete(dispatcher, isAfterVPAIDClick);
 			
-			log("?????",dispatcher == adWrapperPreroll)
 			
 			if (dispatcher == adWrapperPreroll)
 			{
@@ -82,7 +81,6 @@ package ru.pladform.plugin
 			{
 				//При старте преролла ставим ролик на паузу
 				canShowPauseBanner	= false;
-				log("PRE PAUSE")
 				player.pause();
 				player.lock(this, lockHandler);
 				canShowPauseroll = false;
@@ -94,7 +92,6 @@ package ru.pladform.plugin
 		
 		private function playerPlay(e:TimerEvent):void
 		{
-			log("!!!!!!!!!!!!!!!!!!!!!!")
 			resumeVideo();
 		}
 		

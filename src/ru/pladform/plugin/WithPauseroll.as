@@ -6,6 +6,7 @@ package ru.pladform.plugin
 	import ru.pladform.adloader.AdLoader;
 	import ru.pladform.adloader.event.ModuleLoadEvent;
 	import ru.pladform.AdType;
+	import ru.pladform.event.AdEvent;
 	import ru.pladform.PladformAdWrapper;
 	/**
 	 * ...
@@ -88,9 +89,9 @@ package ru.pladform.plugin
 			if (obj == adWrapperPauseroll)
 			{
 				player.unlock(this);
-				log("PAUSE PAUSE")
 				player.pause();
 				player.lock(this, lockHandler);
+				
 			}
 			
 		}
@@ -106,12 +107,21 @@ package ru.pladform.plugin
 				
 				player.lock(this, lockHandler);
 			}
+			else
+			{
+				canShowPauseBanner = true;
+			}
 		}
-		
+		private function emptyHandler(e:AdEvent):void 
+		{
+			//Т.к. этот баннер на паузе не воспроизвелся то можно показать паузролл
+			canShowPauseBanner = true;
+		}
 		// PRIVATE METHODS
 		
 		private function initPauseroll():void 
 		{
+			canShowPauseBanner = false;
 			var loader:AdLoader = new AdLoader();
 			loader.addEventListener(ModuleLoadEvent.LOAD_COMPLETE, moduleLoadHandler);
 			loader.addEventListener(ModuleLoadEvent.LOAD_ERROR, moduleLoadHandler);

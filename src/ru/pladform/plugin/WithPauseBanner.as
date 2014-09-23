@@ -44,7 +44,7 @@ package ru.pladform.plugin
 						}
 						canShowPauseroll = true;
 						
-						initPauseBuner();
+						initPauseBanner();
 					}
 					break;
 				}
@@ -59,7 +59,7 @@ package ru.pladform.plugin
 							return
 						}
 						canShowPauseroll = true;
-						initPauseBuner();
+						initPauseBanner();
 						
 					}
 					break;
@@ -107,7 +107,7 @@ package ru.pladform.plugin
 		
 		// PRIVATE METHODS
 		
-		private function initPauseBuner():void 
+		private function initPauseBanner():void 
 		{
 			//Готовимся показать баннер на паузе
 			var loader:AdLoader = new AdLoader();

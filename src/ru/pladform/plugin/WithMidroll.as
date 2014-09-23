@@ -41,7 +41,6 @@ package ru.pladform.plugin
 			if (obj == adWrapperMidroll)
 			{
 				canShowPauseBanner	= false;
-				log("MID PAUSE")
 				player.pause();
 				player.lock(this, lockHandler);
 				canShowPauseroll	= true;
