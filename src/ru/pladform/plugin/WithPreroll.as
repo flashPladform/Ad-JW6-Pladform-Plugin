@@ -1,7 +1,10 @@
 package ru.pladform.plugin 
 {
+	import com.longtailvideo.jwplayer.events.MediaEvent;
 	import com.longtailvideo.jwplayer.events.PlayerStateEvent;
+	import com.longtailvideo.jwplayer.player.IPlayer;
 	import com.longtailvideo.jwplayer.player.PlayerState;
+	import com.longtailvideo.jwplayer.plugins.PluginConfig;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
@@ -31,7 +34,15 @@ package ru.pladform.plugin
 		// ACCESSORS
 		
 		// PROTECTED METHODS
-		override protected function playerStateHandler(event:PlayerStateEvent):void 
+		
+		override public function initPlugin(player:IPlayer, config:PluginConfig):void
+		{
+			super.initPlugin(player, config)
+			player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, prerollDetectHandler);
+		
+		}
+		
+		/*override protected function playerStateHandler(event:PlayerStateEvent):void 
 		{
 			super.playerStateHandler(event);
 			switch(event.newstate) 
@@ -41,7 +52,8 @@ package ru.pladform.plugin
 					//Только при первом запуске видео (PlayerState.PLAYING) преролл является прероллом
 					if (isNoFirstPlay) return;
 					isNoFirstPlay 		= true;
-					
+					//player.lock();
+					player.pause();
 					canShowPauseBanner	= false;
 					canShowPauseroll	= false;
 					//Готовимся показывать преролл
@@ -51,7 +63,7 @@ package ru.pladform.plugin
 					loader.load();
 				}
 			}
-		}
+		}*/
 		
 		override protected function adComplete(dispatcher:EventDispatcher, isAfterVPAIDClick:Boolean):void 
 		{
@@ -66,10 +78,11 @@ package ru.pladform.plugin
 				//Запускаем видео через короткий промежуток времени
 				if (!isAfterVPAIDClick)
 				{
-					var time:uint = 200;
+					/*var time:uint = 200;
 					var timer:Timer = new Timer(time, 1);
 					timer.addEventListener(TimerEvent.TIMER, playerPlay);
-					timer.start()
+					timer.start()*/
+					playAfterPreroll();
 				}
 				adWrapperPreroll = null;
 			}
@@ -90,6 +103,23 @@ package ru.pladform.plugin
 		
 		// EVENT HANDLERS
 		
+		private function prerollDetectHandler(e:MediaEvent):void 
+		{
+			//Только при первом запуске видео (PlayerState.PLAYING) преролл является прероллом
+			//if e.position
+			if (isNoFirstPlay) return;
+			isNoFirstPlay 		= true;
+			player.pause();
+			//player.lock(this,lockHandler)
+			canShowPauseBanner	= false;
+			canShowPauseroll	= false;
+			//Готовимся показывать преролл
+			var loader:AdLoader = new AdLoader();
+			loader.addEventListener(ModuleLoadEvent.LOAD_COMPLETE, moduleLoadHandler);
+			loader.addEventListener(ModuleLoadEvent.LOAD_ERROR, moduleLoadHandler);
+			loader.load();
+		}
+		
 		private function playerPlay(e:TimerEvent):void
 		{
 			resumeVideo();
@@ -106,12 +136,19 @@ package ru.pladform.plugin
 			}
 			else
 			{
-				resumeVideo();
+				//resumeVideo();
+				playAfterPreroll();
 			}
 		}
 		
 		// PRIVATE METHODS
-
+		private function playAfterPreroll():void
+		{
+			var time:uint = 200;
+			var timer:Timer = new Timer(time, 1);
+			timer.addEventListener(TimerEvent.TIMER, playerPlay);
+			timer.start()
+		}
 	}
 
 }
