@@ -16,6 +16,7 @@ package ru.pladform.plugin
 	{
 		protected var isMidrolShowed	:Boolean; // онформация о том показан ли мидролл
 		private var adWrapperMidroll	:PladformAdWrapper;
+		protected var baseMidrollState:Boolean;
 		
 		public function WithMidroll() 
 		{
@@ -30,7 +31,8 @@ package ru.pladform.plugin
 		override public function initPlugin(player:IPlayer, config:PluginConfig):void
 		{
 			super.initPlugin(player, config)
-			
+			baseMidrollState = !(config.midroll_time && config.midroll_time > 0);
+			isMidrolShowed = baseMidrollState
 			player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaTimeHandler);
 			
 		}
@@ -76,7 +78,7 @@ package ru.pladform.plugin
 		
 		private function mediaTimeHandler(e:MediaEvent):void 
 		{
-			if (!isMidrolShowed && Number(e.position) >= 5)
+			if (!isMidrolShowed && Number(e.position) >= midrollTime)
 			{
 				isMidrolShowed = true;
 				//Готовимся показывать мидролл

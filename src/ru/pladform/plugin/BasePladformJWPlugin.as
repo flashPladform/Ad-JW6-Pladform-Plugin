@@ -27,10 +27,13 @@ package ru.pladform.plugin
 		protected var player				:IPlayer;				//Интерфейс управления плееров согласно API JWPlayer
 		protected var canShowPauseroll		:Boolean;				//флаг доступности паузролла
 		protected var canShowPauseBanner	:Boolean;				//Флаг доступности вызова баннера на паузе
+		protected var midrollTime			:Number;				//Время мидролла в секундах
 		
 		private var pl						:String;				//id плеера согласно API Pladform
 		private var _isLive					:Boolean = true;		//воспроизводится ли потоковое вещание
 		private var adWrapper				:PladformAdWrapper;		//обертка над рекламой для ее управления
+		
+		private var isAdView				:Boolean;				//Показывается ли реклама в данный момент
 		
 		public function BasePladformJWPlugin() 
 		{
@@ -75,16 +78,23 @@ package ru.pladform.plugin
 		{
 			//Подписываемся на события рекламы
 			log("initWrapper", AdType.asString(adType));
-			adWrapper.addEventListener(AdEvent.SHOW, adEventHandler);
-			adWrapper.addEventListener(AdEvent.CLOSE, adEventHandler);
-			adWrapper.addEventListener(AdEvent.COMPLETE, adEventHandler);
-			adWrapper.addEventListener(AdEvent.CLICK, adEventHandler);
-			adWrapper.addEventListener(AdEvent.EMPTY, adEventHandler);
-			
-			adWrapper.addEventListener(AdLoaderEvent.COMPLETE, adLoadEventHandler);
-			adWrapper.addEventListener(AdLoaderEvent.ERROR, adLoadEventHandler);
-			
-			adWrapper.init(new URLVariables("pl=" + pl + "&type=" + adType))
+			if (!isAdView)
+			{
+				adWrapper.addEventListener(AdEvent.SHOW, adEventHandler);
+				adWrapper.addEventListener(AdEvent.CLOSE, adEventHandler);
+				adWrapper.addEventListener(AdEvent.COMPLETE, adEventHandler);
+				adWrapper.addEventListener(AdEvent.CLICK, adEventHandler);
+				adWrapper.addEventListener(AdEvent.EMPTY, adEventHandler);
+				
+				adWrapper.addEventListener(AdLoaderEvent.COMPLETE, adLoadEventHandler);
+				adWrapper.addEventListener(AdLoaderEvent.ERROR, adLoadEventHandler);
+				
+				adWrapper.init(new URLVariables("pl=" + pl + "&type=" + adType))
+			}
+			else
+			{
+				adWrapper.dispatchEvent(new AdLoaderEvent(AdLoaderEvent.ERROR));
+			}
 		}
 		/**
 		 * Окончание рабоыт рекламы
@@ -142,7 +152,8 @@ package ru.pladform.plugin
 			player.addEventListener(PlayerStateEvent.JWPLAYER_PLAYER_STATE, playerStateHandler);
 			player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, liveDetectHandler);
 			//player.pause();
-			pl = config.pl;
+			pl			= config.pl;
+			midrollTime	= config.midroll_time ? config.midroll_time : 10;
 			for (var val :String in player.config) 
 			{
 				log("player.config."+val, player.config[val])
@@ -178,6 +189,7 @@ package ru.pladform.plugin
 			log("??e.type =", e.type)
 			if (e.type == AdLoaderEvent.ERROR)
 			{
+				isAdView = false;
 				adComplete(EventDispatcher(e.currentTarget), false)
 			}
 		}
@@ -190,14 +202,17 @@ package ru.pladform.plugin
 				e.type == AdEvent.EMPTY
 				)
 			{
+				isAdView = false;
 				adComplete(EventDispatcher(e.currentTarget), false)
 			}
 			if (e.type == AdEvent.COMPLETE)
 			{
+				isAdView = false;
 				adComplete(EventDispatcher(e.currentTarget),e.isAfterVPAIDClick)
 			}
 			if (e.type == AdEvent.SHOW)
 			{
+				isAdView = true;
 				showAd(EventDispatcher(e.currentTarget))
 			}
 		}
