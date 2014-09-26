@@ -186,7 +186,6 @@ package ru.pladform.plugin
 		
 		protected function adLoadEventHandler(e:AdLoaderEvent):void 
 		{
-			log("??e.type =", e.type)
 			if (e.type == AdLoaderEvent.ERROR)
 			{
 				isAdView = false;
@@ -196,7 +195,6 @@ package ru.pladform.plugin
 		
 		protected function adEventHandler(e:AdEvent):void 
 		{
-			log("!!e.type =",e.type)
 			if (
 				e.type == AdEvent.CLOSE ||
 				e.type == AdEvent.EMPTY

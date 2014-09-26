@@ -16,6 +16,7 @@ package ru.pladform.plugin
 	{
 		private var isAfterBuffer		:Boolean;
 		private var adWrapperPauseroll	:PladformAdWrapper;
+		private var isAfterShow:Boolean;
 		
 		public function WithPauseroll() 
 		{
@@ -68,19 +69,19 @@ package ru.pladform.plugin
 			super.adComplete(dispatcher, isAfterVPAIDClick);
 			if (dispatcher == adWrapperPauseroll)
 			{
-				player.unlock(this);
-				
+				if (isAfterShow)
+				{
+					player.unlock(this);
+					if (!isAfterVPAIDClick)
+					{
+						resumeVideo();
+					}
+				}
 				canShowPauseBanner	= true;
 				canShowPauseroll	= false;
-				
-				if (!isAfterVPAIDClick)
-				{
-					resumeVideo();
-				}
-				
-				
 				adWrapperPauseroll = null
 			}
+			
 		}
 		
 		override protected function showAd(obj:Object):void 
@@ -91,7 +92,7 @@ package ru.pladform.plugin
 				player.unlock(this);
 				player.pause();
 				player.lock(this, lockHandler);
-				
+				isAfterShow = true;
 			}
 			
 		}
@@ -104,18 +105,11 @@ package ru.pladform.plugin
 				adWrapperPauseroll= e.adWrapper;
 				initWrapper(adWrapperPauseroll, AdType.PAUSEROLL)
 				addChild(adWrapperPauseroll);
-				
-				player.lock(this, lockHandler);
 			}
 			else
 			{
 				canShowPauseBanner = true;
 			}
-		}
-		private function emptyHandler(e:AdEvent):void 
-		{
-			//Т.к. этот баннер на паузе не воспроизвелся то можно показать паузролл
-			canShowPauseBanner = true;
 		}
 		// PRIVATE METHODS
 		
