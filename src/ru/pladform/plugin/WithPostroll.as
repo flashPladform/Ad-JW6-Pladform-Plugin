@@ -72,7 +72,7 @@ package ru.pladform.plugin
 		{
 			//Сбрасываем флаги для одноразовых реклам
 			isNoFirstPlay	= false;
-			isMidrolShowed	= false;
+			isMidrolShowed	= baseMidrollState;
 			player.unlock(this);
 		}
 	}

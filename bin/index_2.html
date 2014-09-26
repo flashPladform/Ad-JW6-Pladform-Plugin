@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<script src="http://jwpsrv.com/library/Z5Fd2J4CEeOAKSIACmOLpg.js"></script>
+</head>
+<body>
+<div id='myElement'></div>
+
+<script type="text/javascript">
+	jwplayer("myElement").setup({
+		 width: '800',
+		height: '400',
+		'sources': [{
+			'file': "http://europaplus.cdnvideo.ru/europaplus-live/eptv_main.sdp/playlist.m3u8"
+		},{
+			'file': "rtmp://europaplus.cdnvideo.ru/europaplus-live/mp4:eptv_main.sdp"
+		}],
+		'plugins': {
+			"pladform_jw.swf":
+			{
+				"pl":"25100",
+				"midroll_time":"-15"
+			}
+		},
+		'primary': "flash",
+		'autostart': 'true',
+		'bufferlength': '0.3'
+	});
+</script>
+				
+<!--<script type='text/javascript'>
+    jwplayer('playerGHvHIxyQuEjq').setup({
+        file: 'video.flv',
+        width: '800',
+		height: '400',
+		plugins: {
+		"pladform_jw.swf":
+			{
+				"pl":"25076",
+				"midroll_time":"15"
+			}
+		}
+    });
+</script>-->
+</body>
+</html>
