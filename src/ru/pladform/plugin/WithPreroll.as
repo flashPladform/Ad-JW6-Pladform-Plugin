@@ -94,6 +94,7 @@ package ru.pladform.plugin
 			{
 				//При старте преролла ставим ролик на паузу
 				canShowPauseBanner	= false;
+				player.unlock(this);
 				player.pause();
 				player.lock(this, lockHandler);
 				canShowPauseroll = false;
