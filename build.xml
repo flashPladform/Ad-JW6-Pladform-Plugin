@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="JW Plugin" default="start.generation" basedir=".">
+    <taskdef resource="flexTasks.tasks" classpath="C:/Ant/lib/flexTasks.jar"/>
+    <property name="FLEX_HOME" value="C:/flex/flex_sdk_4.6 no osmf"/> 
+    <property name="APP_ROOT" value="${basedir}"/>
+
+    <property name="debug" value="fasle"/>
+
+    <target name="start.generation">
+        <mxmlc
+            file="${basedir}/src/ru/pladform/plugin/WithPauseBanner.as"
+            output="${basedir}/bin/pladform_jw.swf"
+            static-link-runtime-shared-libraries="true"
+            benchmark="true"
+            debug="${debug}"
+            target-player="11.0"
+            default-background-color="0xFFFFFF" 
+           >
+            <source-path path-element="${basedir}/src"/>
+            <library-path file="${basedir}/lib/jwplayer-6-lib.swc" append="true"/>
+            <library-path file="${basedir}/lib/pladform_GPMD(22.07.2015-12-08).swc" append="true"/>
+        </mxmlc>
+    </target>
+</project>

@@ -54,7 +54,7 @@
   <!-- SWC Libraries -->
   <libraryPaths>
     <element path="lib\jwplayer-6-lib.swc" />
-    <element path="lib\pladform_GPMD.swc" />
+    <element path="lib\pladform_GPMD(22.07.2015-12-08).swc" />
   </libraryPaths>
   <!-- External Libraries -->
   <externalLibraryPaths>
