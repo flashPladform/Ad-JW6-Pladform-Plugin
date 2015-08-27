@@ -1,121 +1,120 @@
 package ru.pladform.plugin 
 {
-	import com.longtailvideo.jwplayer.events.PlayerStateEvent;
-	import com.longtailvideo.jwplayer.player.PlayerState;
-	import flash.events.EventDispatcher;
-	import ru.pladform.adloader.AdLoader;
-	import ru.pladform.adloader.event.ModuleLoadEvent;
-	import ru.pladform.AdType;
-	import ru.pladform.event.AdEvent;
-	import ru.pladform.PladformAdWrapper;
-	/**
-	 * ...
-	 * @author Alexander Semikolenov (alex.semikolenov@gmail.com)
-	 */
-	public class WithPauseBanner extends WithPauseroll
-	{
-		private var adWrapperPauseBanner:PladformAdWrapper;
-		
-		public function WithPauseBanner() 
-		{
-			
-		}
-		
-		// STATIC METHODS
-		
-		// ACCESSORS
-		
-		// PUBLIC METHODS
-		override protected function playerStateHandler(event:PlayerStateEvent):void 
-		{
-			super.playerStateHandler(event);
-			switch(event.newstate) 
-			{
-				case PlayerState.IDLE:
-				{
-					//Инициализация баннера на живых потоках
-					if (!isLive) break;
-					if (event.oldstate == PlayerState.PLAYING)
-					{
-						if (!canShowPauseBanner || adWrapperPauseBanner)
-						{
-							canShowPauseBanner = true;
-							return
-						}
-						canShowPauseroll = true;
-						
-						initPauseBanner();
-					}
-					break;
-				}
-				case PlayerState.PAUSED:
-				{
-					//Инициализация баннера на обычных потоках
-					if (event.oldstate == PlayerState.PLAYING)
-					{
-						if (!canShowPauseBanner || adWrapperPauseBanner)
-						{
-							canShowPauseBanner = true;
-							return
-						}
-						canShowPauseroll = true;
-						initPauseBanner();
-						
-					}
-					break;
-				}
-			}
-		}
-		// PROTECTED METHODS
-		override protected function adComplete(dispatcher:EventDispatcher, isAfterVPAIDClick:Boolean):void 
-		{
-			super.adComplete(dispatcher, isAfterVPAIDClick);
-			if (dispatcher == adWrapperPauseBanner)
-			{
-				player.unlock(this);
-				//Подписываемся на информацию о том что рекламы нет
-				adWrapperPauseBanner.removeEventListener(AdEvent.EMPTY,  emptyHandler);
-				adWrapperPauseBanner = null;
-			}
-			
-		}
-		// EVENT HANDLERS
-		
-		private function emptyHandler(e:AdEvent):void 
-		{
-			//Т.к. этот баннер на паузе не воспроизвелся то можно показать паузролл
-			canShowPauseroll = true;
-		}
-		
-		private function moduleLoadHandler(e:ModuleLoadEvent):void 
-		{	
-			if (e.type == ModuleLoadEvent.LOAD_COMPLETE)
-			{
-				adWrapperPauseBanner = e.adWrapper;
-				adWrapperPauseBanner.addEventListener(AdEvent.EMPTY,  emptyHandler);
-				initWrapper(adWrapperPauseBanner, AdType.PAUSE_BANNER)
-				addChild(adWrapperPauseBanner);
-				canShowPauseroll = false;
-				player.lock(this, lockHandler);
-			}
-			else
-			{
-				//Паузролл можно показать
-				canShowPauseroll = true;
-			}
-		}
-		
-		// PRIVATE METHODS
-		
-		private function initPauseBanner():void 
-		{
-			//Готовимся показать баннер на паузе
-			var loader:AdLoader = new AdLoader();
-			loader.addEventListener(ModuleLoadEvent.LOAD_COMPLETE, moduleLoadHandler);
-			loader.addEventListener(ModuleLoadEvent.LOAD_ERROR, moduleLoadHandler);
-			loader.load();
-		}
-		
-	}
+    import com.longtailvideo.jwplayer.events.PlayerStateEvent;
+    import com.longtailvideo.jwplayer.player.IPlayer;
+    import com.longtailvideo.jwplayer.player.PlayerState;
+    import com.longtailvideo.jwplayer.plugins.PluginConfig;
+    import ru.pladform.AdWrapper;
+    import ru.pladform.event.AdEvent;
+    
+    /**
+     * Взаимодействие с баннером на паузе (реклама показанная при постановке видео на паузу)
+     * @author Alexander Semikolenov
+     */
+    public class WithPauseBanner extends WithPauseroll 
+    {
+        /**
+         * Ссылка на рекламу
+         */
+        private var pausebannerTag  :String;
+        
+        public function WithPauseBanner() 
+        {
+            super();
+        }
+        
+        // STATIC METHODS
+        
+        // ACCESSORS
+        
+        // PUBLIC METHODS
+        /**
+         * Инициализация плагина, API JWPlayer
+         * @param player объект для управления плеером
+         * @param config конфигурационные данные для инициализации плагина
+         */
+        override public function initPlugin(player:IPlayer, config:PluginConfig):void
+        {
+            super.initPlugin(player, config);
+            pausebannerTag = config.pause_banner;
+            player.addEventListener(PlayerStateEvent.JWPLAYER_PLAYER_STATE, playerStateHandler);
+        }
+        
+        // PROTECTED METHODS
+        
+        // EVENT HANDLERS
+        /**
+         * Обработка событий баннера на паузе
+         * @param e
+         */
+        private function adEventHandler(e:AdEvent):void 
+        {
+            if (e.type == AdEvent.AdStarted)
+            {
+                pauseVideo()
+                canShowPauseroll = false;
+            }
+            else if (e.type == AdEvent.AllAdStopped)
+            {
+                player.unlock(this);
+                //Подписываемся на информацию о том что рекламы нет
+                removeAd(adEventHandler)
+            }
+        }
+        
+        private function playerStateHandler(e:PlayerStateEvent):void 
+        {
+            switch(e.newstate) 
+            {
+                case PlayerState.IDLE:
+                {
+                    //Инициализация баннера на живых потоках
+                    if (!isLive) break;
+                    if (e.oldstate == PlayerState.PLAYING)
+                    {
+                        if (!canShowPauseBanner || currentAdWrapper)
+                        {
+                            canShowPauseBanner = true;
+                            return
+                        }
+                        canShowPauseroll = true;
+                        
+                        initPauseBanner();
+                    }
+                    break;
+                }
+                case PlayerState.PAUSED:
+                {
+                    //Инициализация баннера на обычных потоках
+                    if (e.oldstate == PlayerState.PLAYING)
+                    {
+                        if (!canShowPauseBanner || currentAdWrapper)
+                        {
+                            canShowPauseBanner = true;
+                            return
+                        }
+                        canShowPauseroll = true;
+                        initPauseBanner();
+                        
+                    }
+                    break;
+                }
+            }
+        }
+        
+        // PRIVATE METHODS
+        /**
+         * Показ баннера на паузе
+         */
+        private function initPauseBanner():void 
+        {
+            if (!pausebannerTag)    return;
+            if (!isModuleLoaded)    return;
+            if (currentAdWrapper)   return;
+            var adWrapper :AdWrapper= initAd(adEventHandler)
+            adWrapper.viewInfo.roLinear.update(0, 0, playerSize.width, playerSize.height);
+            adWrapper.load(pausebannerTag);
+        }
+    }
 
 }

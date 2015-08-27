@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="http://jwpsrv.com/library/Z5Fd2J4CEeOAKSIACmOLpg.js"></script>
+</head>
+<body>
+<div id='myElement'></div>
+
+<script type="text/javascript">
+    jwplayer("myElement").setup({
+        width: '800',
+        height: '400',
+        'sources': [{
+           'file': "video.flv?rnd=1063384287"
+        }],
+        'plugins': {
+            "pladform_jw.swf":
+            {
+                "preroll":"//player.develop.pladform.ru/vasttest/kia.xml",
+                "midroll":"//player.develop.pladform.ru/vasttest/kia.xml",
+                "postroll":"//player.develop.pladform.ru/vasttest/kia.xml",
+                "pauseroll":"//player.develop.pladform.ru/vasttest/kia.xml",
+                "pause_banner":"//player.develop.pladform.ru/vasttest/kia.xml",
+                "overlay":"//player.develop.pladform.ru/vasttest/overlay_vpaid.xml",
+                "midroll_time":10,
+                "overlay_time":5
+            }
+        },
+        'primary': "flash",
+        'autostart': 'true',
+        'bufferlength': '0.3'
+    });
+</script>
+</body>
+</html>

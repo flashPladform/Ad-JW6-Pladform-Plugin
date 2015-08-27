@@ -1,96 +1,119 @@
 package ru.pladform.plugin 
 {
-	import com.longtailvideo.jwplayer.events.MediaEvent;
-	import com.longtailvideo.jwplayer.player.IPlayer;
-	import com.longtailvideo.jwplayer.plugins.PluginConfig;
-	import flash.events.EventDispatcher;
-	import ru.pladform.adloader.AdLoader;
-	import ru.pladform.adloader.event.ModuleLoadEvent;
-	import ru.pladform.AdType;
-	import ru.pladform.PladformAdWrapper;
-	/**
-	 * ...
-	 * @author Alexander Semikolenov (alex.semikolenov@gmail.com)
-	 */
-	public class WithMidroll extends WithPreroll
-	{
-		protected var isMidrolShowed	:Boolean; // онформация о том показан ли мидролл
-		private var adWrapperMidroll	:PladformAdWrapper;
-		protected var baseMidrollState:Boolean;
-		
-		public function WithMidroll() 
-		{
-			
-		}
-		
-		// STATIC METHODS
-		
-		// ACCESSORS
-		
-		// PUBLIC METHODS
-		override public function initPlugin(player:IPlayer, config:PluginConfig):void
-		{
-			super.initPlugin(player, config)
-			baseMidrollState = !(config.midroll_time && config.midroll_time > 0);
-			isMidrolShowed = baseMidrollState
-			player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaTimeHandler);
-			
-		}
-		// PROTECTED METHODS
-		override protected function showAd(obj:Object):void 
-		{
-			super.showAd(obj);
-			if (obj == adWrapperMidroll)
-			{
-				canShowPauseBanner	= false;
-				player.unlock(this);
-				player.pause();
-				player.lock(this, lockHandler);
-				canShowPauseroll	= true;
-			}
-		}
-		
-		override protected function adComplete(dispatcher:EventDispatcher, isAfterVPAIDClick:Boolean):void 
-		{
-			super.adComplete(dispatcher, isAfterVPAIDClick);
-			if (dispatcher == adWrapperMidroll)
-			{
-				player.unlock(this);
-				canShowPauseroll	= false;
-				canShowPauseBanner	= true;
-				if (!isAfterVPAIDClick)
-				{
-					resumeVideo();
-				}
-				adWrapperMidroll = null;
-			}
-		}
-		// EVENT HANDLERS
-		
-		private function moduleLoadHandler(e:ModuleLoadEvent):void 
-		{
-			if (e.type == ModuleLoadEvent.LOAD_COMPLETE)
-			{
-				adWrapperMidroll= e.adWrapper;
-				initWrapper(adWrapperMidroll, AdType.MIDLE_ROLL)
-				addChild(adWrapperMidroll);
-			}
-		}
-		
-		private function mediaTimeHandler(e:MediaEvent):void 
-		{
-			if (!isMidrolShowed && Number(e.position) >= midrollTime)
-			{
-				isMidrolShowed = true;
-				//Готовимся показывать мидролл
-				var loader:AdLoader = new AdLoader();
-				loader.addEventListener(ModuleLoadEvent.LOAD_COMPLETE, moduleLoadHandler);
-				loader.addEventListener(ModuleLoadEvent.LOAD_ERROR, moduleLoadHandler);
-				loader.load();
-			}
-		}
-		
-		// PRIVATE METHODS
-	}
+    import com.longtailvideo.jwplayer.events.MediaEvent;
+    import com.longtailvideo.jwplayer.player.IPlayer;
+    import com.longtailvideo.jwplayer.plugins.PluginConfig;
+    import ru.ngl.utils.Console;
+    import ru.pladform.plugin.WithPreroll;
+    import ru.pladform.AdWrapper;
+    import ru.pladform.event.AdEvent;
+    
+
+    /**
+     * Взаимодействие с мидроллом
+     * @author Alexander Semikolenov
+     */
+    public class WithMidroll extends WithPreroll 
+    {
+        /**
+         * Время показа мидролла
+         */
+        private var midrollTime         :Number;
+        /**
+         * Ссылка на рекламу
+         */
+        private var midrollTag          :String;
+        /**
+         * Флаг показа рекламы
+         */
+        protected var isMidrolShowed    :Boolean;
+        /**
+         * Нужно ли показывать мидролл
+         */
+        protected var baseMidrollState  :Boolean;
+        
+        public function WithMidroll() 
+        {
+            super();
+            
+        }
+        
+        // STATIC METHODS
+        
+        // ACCESSORS
+        
+        // PUBLIC METHODS
+        /**
+         * Инициализация плагина, API JWPlayer
+         * @param player объект для управления плеером
+         * @param config конфигурационные данные для инициализации плагина
+         */
+        override public function initPlugin(player:IPlayer, config:PluginConfig):void
+        {
+            super.initPlugin(player, config);
+            //Получаем ссылку на рекламу из конфига
+            midrollTag          = config.midroll;
+            //Получаем время показа мидролла из конфига
+            midrollTime         = config.midroll_time;
+            //если время не нулевое, считаем что рекламу надо показывать
+            baseMidrollState    = !(midrollTime && midrollTime > 0);
+            //Выставляем флаг показа рекламы в зависимости от того надо ли ее показывать
+            isMidrolShowed      = baseMidrollState
+            player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaTimeHandler);
+        }
+        
+        // PROTECTED METHODS
+        
+        // EVENT HANDLERS
+        /**
+         * Обработка событий мидролла
+         * @param e
+         */
+        private function adEventHandler(e:AdEvent):void 
+        {
+            if (e.type == AdEvent.AdStarted)
+            {
+                //ставим контент на паузу, при этом выствляем ограничивающие флаги
+                canShowPauseBanner  = false;
+                pauseVideo();
+                canShowPauseroll    = true;
+            }
+            else if (e.type == AdEvent.AllAdStopped)
+            {
+                player.unlock(this);
+                //Запускаем видео, если есть необходимость, делаем возвожным запуск баннера на паузе
+                canShowPauseroll    = false;
+                canShowPauseBanner  = true;
+                if (!isNeedPutVideoOnPause)
+                {
+                    resumeVideo();
+                }
+                removeAd(adEventHandler)
+            }
+        }
+        /**
+         * Следим за прогрессом воспроизведения для определения времени показа мидролла
+         * @param e
+         */
+        private function mediaTimeHandler(e:MediaEvent):void 
+        {
+            
+            if (!isMidrolShowed && Number(e.position) >= midrollTime)
+            {
+                if (!midrollTag)        return;
+                if (!isModuleLoaded)    return;
+                if (currentAdWrapper)   return;
+                Console.log2("MIDROLL -",currentAdWrapper,"-")
+                isMidrolShowed              = true;
+                //Готовимся показывать мидролл
+                var adWrapper   :AdWrapper  = initAd(adEventHandler);
+                adWrapper.viewInfo.roLinear.update(0, 0, playerSize.width, playerSize.height);
+                adWrapper.load(midrollTag);
+            }
+        }
+        
+        // PRIVATE METHODS
+        
+    }
 
 }
